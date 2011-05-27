@@ -16,6 +16,15 @@
 # License along with graphite. If not, see <http://www.gnu.org/licenses/>.
 
 
-pathway.names <- function(pathways) {
-  names(pathways$nodes)
+runDEGraph <- function(pathway, expr, classes) {
+  if (!require(DEGraph))
+    stop("library DEGraph is missing")
+
+  checkPkgVersion("DEGraph", "1.4.0")
+
+  if (insufficientCommonGenes(pathway, rownames(expr)))
+    return(NULL)
+  
+  g <- buildGraphNEL(nodes(pathway), edges(pathway), FALSE)
+  testOneGraph(g, expr, classes, useInteractionSigns=FALSE)
 }

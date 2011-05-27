@@ -15,14 +15,24 @@
 # You should have received a copy of the GNU Affero General Public
 # License along with graphite. If not, see <http://www.gnu.org/licenses/>.
 
-import(org.Hs.eg.db)
-importFrom(AnnotationDbi, mget)
-importClassesFrom(graph, graphNEL)
-importMethodsFrom(graph, edgeDataDefaults, edgeData)
 
-exportClasses(pathway)
-exportMethods(show, nodes, edges)
-export(convertIdentifiers, pathwayGraph, cytoscapePlot)
-export(prepareSPIA, runSPIA)
-export(runDEGraph)
-export(runTopologyGSA)
+runTopologyGSA <- function(pathway, test, exp1, exp2, ...) {
+  if (!require(topologyGSA))
+    stop("library topologyGSA is missing")
+
+  checkPkgVersion("topologyGSA", "1.0")
+
+  if (test == "var") {
+    test <- pathway.var.test
+  } else if (test == "mean") {
+    test <- pathway.mean.test
+  } else {
+    stop("invalid test type: ", test)
+  }
+
+  if (insufficientCommonGenes(pathway, colnames(exp1)))
+    return(NULL)
+
+  g <- buildGraphNEL(nodes(pathway), edges(pathway), FALSE)
+  test(exp1, exp2, g, ...)
+}

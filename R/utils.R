@@ -15,14 +15,22 @@
 # You should have received a copy of the GNU Affero General Public
 # License along with graphite. If not, see <http://www.gnu.org/licenses/>.
 
-import(org.Hs.eg.db)
-importFrom(AnnotationDbi, mget)
-importClassesFrom(graph, graphNEL)
-importMethodsFrom(graph, edgeDataDefaults, edgeData)
+checkPkgVersion <- function(name, min_version) {
+  version <- package_version(installed.packages()[name, "Version"])
+  if (version < package_version(min_version))
+    stop("the installed ", name, " version is too old (need at least ", min_version, ")")
+}
 
-exportClasses(pathway)
-exportMethods(show, nodes, edges)
-export(convertIdentifiers, pathwayGraph, cytoscapePlot)
-export(prepareSPIA, runSPIA)
-export(runDEGraph)
-export(runTopologyGSA)
+insufficientCommonGenes <- function(pathway, exprGenes) {
+  es <- edges(pathway)
+  esNames <- unique(c(es$src, es$dest))
+  commonNames <- intersect(esNames, exprGenes)
+
+  if (length(commonNames) < 2) {
+    warning("not enough genes in common between pathway \"",
+            pathway@title,
+            "\" and expression data (mismatched identifiers?)")
+    return(TRUE)
+  } else
+    return(FALSE)
+}
